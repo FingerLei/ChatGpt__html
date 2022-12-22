@@ -1,0 +1,280 @@
+<!doctype html>
+<html class="no-js" lang="">
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Ai - Chat</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>#chatgpt-response { font-family: "宋体"; font-size: 20px; color: #0000FF; font-weight: bold; }</style>
+    <!-- favicon icon -->
+    <link rel="icon" href="img/favicon.png">
+    <!-- All CSS Files Here -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/et-line-fonts.css">
+    <link rel="stylesheet" href="css/ionicons.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/meanmenu.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+    <script>
+    var isAnswering=false; 
+	    async function callCHATGPT() {
+	    if(document.getElementById("chat-gpt-input").value.trim().length == 0)return;  
+		var responseText1 = document.getElementById("chatgpt-response");
+		var waitresponse = "正在思考，请等待......";
+		responseText1.innerHTML = responseText1.innerHTML+"\n";
+		
+		 
+        function printMessage(message) {
+            if(!isAnswering){
+          var responseText = document.getElementById("chatgpt-response");
+          var index = 0;
+         
+          // 创建一个定时器，每隔一段时间打印一个字符
+          var interval = setInterval(function() {
+            responseText.innerHTML += message[index];
+            index++;
+
+            // 当打印完成时，清除定时器
+            if (index >= message.length) {
+              clearInterval(interval);
+              
+               
+            }
+          },
+          50); // 每隔50毫秒打印一个字符
+            }
+        }
+       
+        var xhr = new XMLHttpRequest();
+        var url = "https://api.openai.com/v1/completions";
+        // https://cc-api.sbaliyun.com/completions  https://api.openai.com/v1/completions
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer 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");
+        xhr.onreadystatechange = function() {
+        
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            var response = json.choices[0].text;
+            
+            // 将CHATGPT的返回值输出到文本框
+            var responseText = document.getElementById("chatgpt-response");
+            if (responseText.innerHTML.search(waitresponse)!=-1){responseText.innerHTML=responseText.innerHTML.replace(waitresponse,"");}
+            var index = 0;
+
+            // 创建一个定时器，每隔一段时间打印一个字符
+            var interval = setInterval(function() {
+              
+              responseText.innerHTML += response[index];
+              index++;
+
+              // 当打印完成时，清除定时器
+              if (index >= response.length) {
+                clearInterval(interval);
+                isAnswering=false;
+              }
+            },
+            50); // 每隔50毫秒打印一个字符
+          }
+        };
+         if ( document.getElementById("chatgpt-response").value.search(waitresponse)!=-1){ document.getElementById("chatgpt-response").value= document.getElementById("chatgpt-response").value.replace(waitresponse,"");}  
+         document.getElementById("chatgpt-response").value.replace(/(^\s*)/g, "");
+        var data = JSON.stringify({
+          "prompt": document.getElementById("chat-gpt-input").value,
+          "max_tokens": 2048,
+          "temperature": 0.5,
+          "top_p": 1,
+          "frequency_penalty": 0,
+          "presence_penalty": 0,
+          "model": "text-davinci-003"
+        });
+        console.log(data);
+        await printMessage(waitresponse);
+         isAnswering=true;
+		await xhr.send(data);
+		
+      }
+        async function clearCHATGPT() {
+           if(isAnswering) return;
+            //document.getElementById("chatgpt-response").value="";
+           var responseText1 = document.getElementById("chatgpt-response");
+		
+		    responseText1.innerHTML = "";
+		  var data = JSON.stringify({
+              "prompt": document.getElementById("chat-gpt-input").value,
+              "max_tokens": 2048,
+              "temperature": 0.5,
+              "top_p": 1,
+              "frequency_penalty": 0,
+              "presence_penalty": 0,
+              "model": "text-davinci-003"
+            });
+            await xhr.send(data);
+        } //clearSearchCHATGPT
+       async function clearSearchCHATGPT() {
+           if(isAnswering) return;
+           //document.getElementById("chat-gpt-input").value="";
+            var responseText1 = document.getElementById("chat-gpt-input");
+		
+		    responseText1.value = "";
+		  var data = JSON.stringify({
+              "prompt": document.getElementById("chat-gpt-input").value,
+              "max_tokens": 2048,
+              "temperature": 0.5,
+              "top_p": 1,
+              "frequency_penalty": 0,
+              "presence_penalty": 0,
+              "model": "text-davinci-003"
+            });
+            await xhr.send(data);
+        } 
+        function fireKeyEvent(el, evtType, keyCode) {
+            var evtObj;
+            if (document.createEvent) {
+                if (window.KeyEvent) {//firefox 浏览器下模拟事件
+                    evtObj = document.createEvent('KeyEvents');
+                    evtObj.initKeyEvent(evtType, true, true, window, true, false, false, false, keyCode, 0);
+                } else {//chrome 浏览器下模拟事件
+                    evtObj = document.createEvent('UIEvents');
+                    evtObj.initUIEvent(evtType, true, true, window, 1);
+ 
+                    delete evtObj.keyCode;
+                    if (typeof evtObj.keyCode === "undefined") {//为了模拟keycode
+                        Object.defineProperty(evtObj, "keyCode", { value: keyCode });
+                    } else {
+                        evtObj.key = String.fromCharCode(keyCode);
+                    }
+ 
+                    if (typeof evtObj.ctrlKey === 'undefined') {//为了模拟ctrl键
+                        Object.defineProperty(evtObj, "ctrlKey", { value: true });
+                    } else {
+                        evtObj.ctrlKey = true;
+                    }
+                }
+                el.dispatchEvent(evtObj);
+ 
+            } else if (document.createEventObject) {//IE 浏览器下模拟事件
+                evtObj = document.createEventObject();
+                evtObj.keyCode = keyCode
+                el.fireEvent('on' + evtType, evtObj);
+            }
+        }
+	</script>
+  </head>
+	 
+  <body>
+    <div class="page-loader">
+      <div class="loader">Loading...</div></div>
+    <header id="sticky-header">
+      <div class="header-area">
+        <div class="container sm-100">
+          <div class="row">
+            <div class="col-md-3 col-sm-2">
+              <div class="logo text-upper">
+                <h4>
+                  <a href="index.html">OpenAi -ChatGPT</a></h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="basic-portfolio-area ptb-10">
+      <div class="filter-menu text-center mb-20">
+        <h2>与Ai对话，请描述您的需求-支持中文、英语、日本语等</h2>
+        <h3></h3>
+        <!--<h3></h3>-->
+        <!--<h3></h3>-->
+        <!--<h3></h3>-->
+		<!--<p>https://cloud.tencent.com/developer/article/2192663</p>-->
+	  </div>
+      <div class="call-to-action-area gray-bg ptb-5">
+        <div class="container">
+          <div class="form-group">
+                  <label></label>
+                  <textarea class="form-control" id="chatgpt-response" placeholder="长途访问，请耐心等待回答 Ai生成它很快，但是由于网络问题我们需要等待，通常内容越长等待越久 如果长时间没反应请刷新页面重试" rows="16" resize="none" style="width: 150%;height: auto; margin: 0 auto; background-color: #f4f4f4; color: #333; border: 1px solid #ccc; border-radius: 10px; overflow: scroll;" readonly="true"></textarea>
+                </div>
+          <div class="row">
+            <div class="col-md-9 col-sm-9 col-xs-12">
+              <div class="form-group">
+                <label></label>
+                <textarea class="form-control" id="chat-gpt-input" placeholder="输入描述" rows="3" resize="none" style="width: 135%; margin: 0 auto; background-color: #f4f4f4; color: #333; border: 1px solid #ccc; border-radius: 12px;"></textarea>
+              </div>
+              
+                
+              </div>
+            </div>
+          <div class="col-md-3 col-sm-3 col-xs-12">
+                <div class="call-to-action">
+                  <button onclick="callCHATGPT()" autocomplete="off" class="btn btn-large" href="#" style="background-color: #333; color: #f4f4f4; border-radius: 10px">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>发送
+                    <br></button>
+                 <button onclick="clearSearchCHATGPT()" autocomplete="off" class="btn btn-large" href="#" style="background-color: #333; color: #f4f4f4; border-radius: 10px">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>清空
+                    <br></button>
+                    <button onclick="clearCHATGPT()" autocomplete="off" class="btn btn-large" href="#" style="background-color: #333; color: #f4f4f4; border-radius: 10px">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>重置
+                    <br></button></div>
+                    <div class="call-to-key"><script>
+                 document.onkeydown = function(){
+            //判断按下的按键是否为ascll码表中值为49的键
+			if(event.keyCode ==13){
+                //弹出提示
+			    	//alert("您按下了1键")
+			  var htmlBtns = document.getElementsByTagName('button')[0];//获取HTMLCollection对象集合
+			    htmlBtns.click();
+			     //document.getElementById("发送").click();
+			}
+		}</script></div>
+                    <!--<div class="call-to-actionclear">-->
+                    <!--</div>-->
+                
+              </div>
+          </div>
+		</div>
+		<footer>
+			<div class="basic-footer gray-bg text-center ptb-90">
+				<div class="container">
+					<div class="footer-logo mb-30">
+						<h3><a href="index.html">Open Ai 智能对话</a></h3>
+					</div>
+					<div class="copyright mt-20">
+						<!-- <p>chat-gpt/open ai 成品号 5元一个</p> -->
+						<!-- <p><a href="https://1.ksfaka.com/chatgtp.htm">https://1.ksfaka.com/chatgtp.htm</a></p> -->
+						<p>站长TG：<a href="https://t.me/pocxxx">fingerlei@126.com</a></p>
+						<p>国外手机号接码：<a href="https://sms-activate.org/?ref=2461182">https://sms-activate.org</a></p>
+						<hr>
+						<hr>
+						<p>截至到2022.12.18 已花费5000多刀 👇扫码赞助站长👇</p>
+						<p><img src='/img/mm_facetoface_collect_qrcode.png' /></p>
+					</div>
+				</div>
+			</div>
+		</footer>
+
+        <script src="js/vendor/jquery-1.12.0.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/isotope.pkgd.min.js"></script>
+        <script src="js/imagesloaded.pkgd.min.js"></script>
+        <script src="js/jquery.magnific-popup.min.js"></script>
+        <script src="js/jquery.meanmenu.js"></script>
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+		<script>
+		var _hmt = _hmt || [];
+		(function() {
+		  var hm = document.createElement("script");
+		  hm.src = "https://hm.baidu.com/hm.js?05df94d9887ea8acd5a75f70e8a6bb11";
+		  var s = document.getElementsByTagName("script")[0]; 
+		  s.parentNode.insertBefore(hm, s);
+		})();
+		</script>
+
+  </body>
+
+</html>
